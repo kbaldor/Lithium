@@ -1,7 +1,5 @@
 package sodium;
 
-import java.util.Optional;
-
 public class Cell<A> {
 	protected final Stream<A> event;
 	A value;
@@ -81,17 +79,19 @@ public class Cell<A> {
 
     /**
      * A variant of sample() that works for CellLoops when they haven't been looped yet.
-     * @see Stream.holdLazy()
      */
     public final Lazy<A> sampleLazy() {
         final Cell<A> me = this;
         return Transaction.apply(new Lambda1<Transaction, Lazy<A>>() {
         	public Lazy<A> apply(Transaction trans) {
-                LazySample<A> s = new LazySample<A>(me);
-                trans.last(() -> {
-                    s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans();
-                    s.hasValue = true;
-                    s.cell = null;
+                final LazySample<A> s = new LazySample<A>(me);
+                trans.last(new Runnable() {
+                    @Override
+                    public void run() {
+                        s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans();
+                        s.hasValue = true;
+                        s.cell = null;
+                    }
                 });
                 return new Lazy<A>(new Lambda0<A>() {
                     public A apply() {
@@ -135,7 +135,7 @@ public class Cell<A> {
 
     final Stream<A> value(Transaction trans1)
     {
-    	StreamSink<Unit> sSpark = new StreamSink<Unit>();
+    	final StreamSink<Unit> sSpark = new StreamSink<Unit>();
         trans1.prioritized(sSpark.node, new Handler<Transaction>() {
             public void run(Transaction trans2) {
                 sSpark.send(trans2, Unit.UNIT);
@@ -156,7 +156,7 @@ public class Cell<A> {
 	/**
 	 * Lift a binary function into cells.
 	 */
-	public static final <A,B,C> Cell<C> lift(Lambda2<A,B,C> f, Cell<A> a, Cell<B> b)
+	public static final <A,B,C> Cell<C> lift(final Lambda2<A,B,C> f, Cell<A> a, Cell<B> b)
 	{
 		Lambda1<A, Lambda1<B,C>> ffa = new Lambda1<A, Lambda1<B,C>>() {
 			public Lambda1<B,C> apply(final A aa) {
@@ -174,7 +174,7 @@ public class Cell<A> {
 	/**
 	 * Lift a ternary function into cells.
 	 */
-	public static final <A,B,C,D> Cell<D> lift(Lambda3<A,B,C,D> f, Cell<A> a, Cell<B> b, Cell<C> c)
+	public static final <A,B,C,D> Cell<D> lift(final Lambda3<A,B,C,D> f, Cell<A> a, Cell<B> b, Cell<C> c)
 	{
 		Lambda1<A, Lambda1<B, Lambda1<C,D>>> ffa = new Lambda1<A, Lambda1<B, Lambda1<C,D>>>() {
 			public Lambda1<B, Lambda1<C,D>> apply(final A aa) {
@@ -196,7 +196,7 @@ public class Cell<A> {
 	/**
 	 * Lift a quaternary function into cells.
 	 */
-	public static final <A,B,C,D,E> Cell<E> lift(Lambda4<A,B,C,D,E> f, Cell<A> a, Cell<B> b, Cell<C> c, Cell<D> d)
+	public static final <A,B,C,D,E> Cell<E> lift(final Lambda4<A,B,C,D,E> f, Cell<A> a, Cell<B> b, Cell<C> c, Cell<D> d)
 	{
 		Lambda1<A, Lambda1<B, Lambda1<C, Lambda1<D,E>>>> ffa = new Lambda1<A, Lambda1<B, Lambda1<C, Lambda1<D,E>>>>() {
 			public Lambda1<B, Lambda1<C, Lambda1<D,E>>> apply(final A aa) {
@@ -250,15 +250,20 @@ public class Cell<A> {
                         resetFired(trans1);
                     }
                     void resetFired(Transaction trans1) {
-                        trans1.last(() -> { fired = false; });
+                        trans1.last(new Runnable() {
+                            @Override
+                            public void run() {
+                                fired = false;
+                            }
+                        });
                     }
                 }
 
                 Node out_target = out.node;
-                Node in_target = new Node(0);
+                final Node in_target = new Node(0);
                 Node.Target[] node_target_ = new Node.Target[1];
                 in_target.linkTo(null, out_target, node_target_);
-                Node.Target node_target = node_target_[0];
+                final Node.Target node_target = node_target_[0];
                 final ApplyHandler h = new ApplyHandler(trans0);
                 Listener l1 = bf.value().listen_(in_target, new TransactionHandler<Lambda1<A,B>>() {
                     public void run(Transaction trans1, Lambda1<A,B> f) {
@@ -293,7 +298,12 @@ public class Cell<A> {
 	{
 	    return Transaction.apply(new Lambda1<Transaction, Cell<A>>() {
 	        public Cell<A> apply(Transaction trans0) {
-                Lazy<A> za = bba.sampleLazy().map(ba -> ba.sample());
+                Lazy<A> za = bba.sampleLazy().map(new Lambda1<Cell<A>, A>() {
+                    @Override
+                    public A apply(Cell<A> aCell) {
+                        return aCell.sample();
+                    }
+                });
                 final StreamSink<A> out = new StreamSink<A>();
                 TransactionHandler<Cell<A>> h = new TransactionHandler<Cell<A>>() {
                     private Listener currentListener;
@@ -386,26 +396,29 @@ public class Cell<A> {
      */
     public final <B,S> Cell<B> collect(final Lazy<S> initState, final Lambda2<A, S, Tuple2<B, S>> f)
     {
-        return Transaction.<Cell<B>>run(() -> {
-            final Stream<A> ea = updates().coalesce(new Lambda2<A,A,A>() {
-                public A apply(A fst, A snd) { return snd; }
-            });
-            final Lazy<Tuple2<B,S>> zbs = Lazy.<A,S,Tuple2<B,S>>lift(
-                f, sampleLazy(), initState);
-            StreamLoop<Tuple2<B,S>> ebs = new StreamLoop<Tuple2<B,S>>();
-            Cell<Tuple2<B,S>> bbs = ebs.holdLazy(zbs);
-            Cell<S> bs = bbs.map(new Lambda1<Tuple2<B,S>,S>() {
-                public S apply(Tuple2<B,S> x) {
-                    return x.b;
-                }
-            });
-            Stream<Tuple2<B,S>> ebs_out = ea.snapshot(bs, f);
-            ebs.loop(ebs_out);
-            return bbs.map(new Lambda1<Tuple2<B,S>,B>() {
-                public B apply(Tuple2<B,S> x) {
-                    return x.a;
-                }
-            });
+        return Transaction.<Cell<B>>run(new Lambda0<Cell<B>>() {
+            @Override
+            public Cell<B> apply() {
+                final Stream<A> ea = updates().coalesce(new Lambda2<A,A,A>() {
+                    public A apply(A fst, A snd) { return snd; }
+                });
+                final Lazy<Tuple2<B,S>> zbs = Lazy.<A,S,Tuple2<B,S>>lift(
+                        f, sampleLazy(), initState);
+                StreamLoop<Tuple2<B,S>> ebs = new StreamLoop<Tuple2<B,S>>();
+                Cell<Tuple2<B,S>> bbs = ebs.holdLazy(zbs);
+                Cell<S> bs = bbs.map(new Lambda1<Tuple2<B,S>,S>() {
+                    public S apply(Tuple2<B,S> x) {
+                        return x.b;
+                    }
+                });
+                Stream<Tuple2<B,S>> ebs_out = ea.snapshot(bs, f);
+                ebs.loop(ebs_out);
+                return bbs.map(new Lambda1<Tuple2<B,S>,B>() {
+                    public B apply(Tuple2<B,S> x) {
+                        return x.a;
+                    }
+                });
+            }
         });
     }
 

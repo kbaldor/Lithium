@@ -3,7 +3,6 @@ package sodium;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public class Stream<A> {
 	private static final class ListenerImplementation<A> extends Listener {
@@ -68,7 +67,7 @@ public class Stream<A> {
 	}
 
 	@SuppressWarnings("unchecked")
-	final Listener listen(Node target, Transaction trans, TransactionHandler<A> action, boolean suppressEarlierFirings) {
+	final Listener listen(Node target, final Transaction trans, final TransactionHandler<A> action, boolean suppressEarlierFirings) {
 	    Node.Target[] node_target_ = new Node.Target[1];
         synchronized (Transaction.listenersLock) {
             if (node.linkTo((TransactionHandler<Unit>)action, target, node_target_))
@@ -195,7 +194,7 @@ public class Stream<A> {
         final Node right = out.node;
         Node.Target[] node_target_ = new Node.Target[1];
         left.linkTo(null, right, node_target_);
-        Node.Target node_target = node_target_[0];
+        final Node.Target node_target = node_target_[0];
         TransactionHandler<A> h = new TransactionHandler<A>() {
         	public void run(Transaction trans, A a) {
 	            out.send(trans, a);
@@ -375,19 +374,23 @@ public class Stream<A> {
      */
     public final <B,S> Stream<B> collectLazy(final Lazy<S> initState, final Lambda2<A, S, Tuple2<B, S>> f)
     {
-        return Transaction.<Stream<B>>run(() -> {
-            final Stream<A> ea = this;
-            StreamLoop<S> es = new StreamLoop<S>();
-            Cell<S> s = es.holdLazy(initState);
-            Stream<Tuple2<B,S>> ebs = ea.snapshot(s, f);
-            Stream<B> eb = ebs.map(new Lambda1<Tuple2<B,S>,B>() {
-                public B apply(Tuple2<B,S> bs) { return bs.a; }
-            });
-            Stream<S> es_out = ebs.map(new Lambda1<Tuple2<B,S>,S>() {
-                public S apply(Tuple2<B,S> bs) { return bs.b; }
-            });
-            es.loop(es_out);
-            return eb;
+        final Stream<A> ea = this;
+        return Transaction.run(new Lambda0<Stream<B>>(){
+
+            @Override
+            public Stream<B> apply() {
+                StreamLoop<S> es = new StreamLoop<S>();
+                Cell<S> s = es.holdLazy(initState);
+                Stream<Tuple2<B,S>> ebs = ea.snapshot(s, f);
+                Stream<B> eb = ebs.map(new Lambda1<Tuple2<B,S>,B>() {
+                    public B apply(Tuple2<B,S> bs) { return bs.a; }
+                });
+                Stream<S> es_out = ebs.map(new Lambda1<Tuple2<B,S>,S>() {
+                    public S apply(Tuple2<B,S> bs) { return bs.b; }
+                });
+                es.loop(es_out);
+                return eb;
+            }
         });
     }
 
@@ -405,13 +408,16 @@ public class Stream<A> {
      */
     public final <S> Cell<S> accumLazy(final Lazy<S> initState, final Lambda2<A, S, S> f)
     {
-        return Transaction.<Cell<S>>run(() -> {
-            final Stream<A> ea = this;
-            StreamLoop<S> es = new StreamLoop<S>();
-            Cell<S> s = es.holdLazy(initState);
-            Stream<S> es_out = ea.snapshot(s, f);
-            es.loop(es_out);
-            return es_out.holdLazy(initState);
+        final Stream<A> ea = this;
+        return Transaction.run(new Lambda0<Cell<S>>() {
+            @Override
+            public Cell<S> apply() {
+                StreamLoop<S> es = new StreamLoop<S>();
+                Cell<S> s = es.holdLazy(initState);
+                Stream<S> es_out = ea.snapshot(s, f);
+                es.loop(es_out);
+                return es_out.holdLazy(initState);
+            }
         });
     }
 

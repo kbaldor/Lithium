@@ -4,7 +4,7 @@ import java.util.HashSet;
 
 public class StreamWithSend<A> extends Stream<A> {
 
-	protected void send(Transaction trans, A a) {
+	protected void send(final Transaction trans, final A a) {
 		if (firings.isEmpty())
 			trans.last(new Runnable() {
 				public void run() {
@@ -17,7 +17,7 @@ public class StreamWithSend<A> extends Stream<A> {
         synchronized (Transaction.listenersLock) {
             listeners = new HashSet<Node.Target>(node.listeners);
         }
-		for (Node.Target target : node.listeners) {
+		for (final Node.Target target : node.listeners) {
             trans.prioritized(target.node, new Handler<Transaction>() {
                 public void run(Transaction trans2) {
                     Transaction.inCallback++;

@@ -22,7 +22,7 @@ public class Node implements Comparable<Node> {
     }
 
 	private long rank;
-    List<Target> listeners = new ArrayList<>();
+    List<Target> listeners = new ArrayList<Target>();
 
 	/**
 	 * @return true if any changes were made. 
