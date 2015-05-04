@@ -24,7 +24,7 @@ public abstract class TimerSystem<T> {
      * A timer that fires at the specified time.
      */
     public Stream<Unit> at(Cell<Optional<T>> tAlarm) {
-        final StreamSink<Unit> sOut = new StreamSink<>();
+        final StreamSink<Unit> sOut = new StreamSink<Unit>();
         final CurrentTimer current = new CurrentTimer();
         Listener l = tAlarm.value().listen(new Handler<Optional<T>>() {
                                                @Override
