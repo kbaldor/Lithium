@@ -1,6 +1,6 @@
 package lithium.time;
 
-import sodium.Handler;
+import lithium.Handler;
 import java.util.TreeSet;
 
 public class SimpleTimerSystem extends TimerSystem<Long> {
@@ -20,7 +20,6 @@ public class SimpleTimerSystem extends TimerSystem<Long> {
                 timers.remove(this);
             }
         }
-		@Override
 		public int compareTo(SimpleTimer o) {
 		    if (t < o.t) return -1;
 		    if (t > o.t) return 1;

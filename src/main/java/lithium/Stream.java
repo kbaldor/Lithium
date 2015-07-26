@@ -148,7 +148,7 @@ public class Stream<A> {
 	}
 
 	/**
-	 * Sample the behavior at the time of the event firing. Note that the 'current value'
+	 * Sample the behavior at the lithium.time of the event firing. Note that the 'current value'
      * of the behavior that's sampled is the value as at the start of the transaction
      * before any state changes of the current transaction are applied through 'hold's.
      */
@@ -395,7 +395,7 @@ public class Stream<A> {
     }
 
     /**
-     * Accumulate on input event, outputting the new state each time.
+     * Accumulate on input event, outputting the new state each lithium.time.
      */
     public final <S> Cell<S> accum(final S initState, final Lambda2<A, S, S> f)
     {
@@ -403,7 +403,7 @@ public class Stream<A> {
     }
 
     /**
-     * Accumulate on input event, outputting the new state each time.
+     * Accumulate on input event, outputting the new state each lithium.time.
      * Variant that takes a lazy initial state.
      */
     public final <S> Cell<S> accumLazy(final Lazy<S> initState, final Lambda2<A, S, S> f)

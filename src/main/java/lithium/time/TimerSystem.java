@@ -1,6 +1,6 @@
 package lithium.time;
 
-import sodium.*;
+import lithium.*;
 
 public abstract class TimerSystem<T> {
     public abstract Timer setTimer(T t, Runnable callback);
@@ -27,14 +27,12 @@ public abstract class TimerSystem<T> {
         final StreamSink<Unit> sOut = new StreamSink<Unit>();
         final CurrentTimer current = new CurrentTimer();
         Listener l = tAlarm.value().listen(new Handler<Optional<T>>() {
-                                               @Override
                                                public void run(Optional<T> oAlarm) {
                                                    if (current.oTimer.isPresent())
                                                        current.oTimer.get().cancel();
                                                    current.oTimer = oAlarm.isPresent()
                                                            ? Optional.<Timer>of(
                                                            setTimer(oAlarm.get(), new Runnable() {
-                                                               @Override
                                                                public void run() {
                                                                    sOut.send(Unit.UNIT);
                                                                }

@@ -86,7 +86,6 @@ public class Cell<A> {
         	public Lazy<A> apply(Transaction trans) {
                 final LazySample<A> s = new LazySample<A>(me);
                 trans.last(new Runnable() {
-                    @Override
                     public void run() {
                         s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans();
                         s.hasValue = true;
@@ -236,7 +235,6 @@ public class Cell<A> {
                     boolean fired = true;
                     Lambda1<A,B> f = null;
                     A a = null;
-                    @Override
                     public void run(Transaction trans1) {
                         if (fired) 
                             return;
@@ -251,7 +249,6 @@ public class Cell<A> {
                     }
                     void resetFired(Transaction trans1) {
                         trans1.last(new Runnable() {
-                            @Override
                             public void run() {
                                 fired = false;
                             }
@@ -292,14 +289,13 @@ public class Cell<A> {
 	}
 
 	/**
-	 * Unwrap a cell inside another cell to give a time-varying cell implementation.
+	 * Unwrap a cell inside another cell to give a lithium.time-varying cell implementation.
 	 */
 	public static <A> Cell<A> switchC(final Cell<Cell<A>> bba)
 	{
 	    return Transaction.apply(new Lambda1<Transaction, Cell<A>>() {
 	        public Cell<A> apply(Transaction trans0) {
                 Lazy<A> za = bba.sampleLazy().map(new Lambda1<Cell<A>, A>() {
-                    @Override
                     public A apply(Cell<A> aCell) {
                         return aCell.sample();
                     }
@@ -307,7 +303,6 @@ public class Cell<A> {
                 final StreamSink<A> out = new StreamSink<A>();
                 TransactionHandler<Cell<A>> h = new TransactionHandler<Cell<A>>() {
                     private Listener currentListener;
-                    @Override
                     public void run(Transaction trans2, Cell<A> ba) {
                         // Note: If any switch takes place during a transaction, then the
                         // value().listen will always cause a sample to be fetched from the
@@ -337,7 +332,7 @@ public class Cell<A> {
 	}
 	
 	/**
-	 * Unwrap an event inside a cell to give a time-varying event implementation.
+	 * Unwrap an event inside a cell to give a lithium.time-varying event implementation.
 	 */
 	public static <A> Stream<A> switchS(final Cell<Stream<A>> bea)
 	{
@@ -359,7 +354,6 @@ public class Cell<A> {
         TransactionHandler<Stream<A>> h1 = new TransactionHandler<Stream<A>>() {
             private Listener currentListener = bea.sampleNoTrans().listen(out.node, trans1, h2, false);
 
-            @Override
             public void run(final Transaction trans2, final Stream<A> ea) {
                 trans2.last(new Runnable() {
                 	public void run() {
@@ -397,7 +391,6 @@ public class Cell<A> {
     public final <B,S> Cell<B> collect(final Lazy<S> initState, final Lambda2<A, S, Tuple2<B, S>> f)
     {
         return Transaction.<Cell<B>>run(new Lambda0<Cell<B>>() {
-            @Override
             public Cell<B> apply() {
                 final Stream<A> ea = updates().coalesce(new Lambda2<A,A,A>() {
                     public A apply(A fst, A snd) { return snd; }

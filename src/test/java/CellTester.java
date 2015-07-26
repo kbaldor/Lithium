@@ -3,6 +3,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.TestCase;
+import lithium.*;
 
 public class CellTester extends TestCase {
 	@Override

@@ -8,7 +8,7 @@ import java.util.Set;
 public class Node implements Comparable<Node> {
     public final static Node NULL = new Node(Long.MAX_VALUE);
 
-	Node(long rank) {
+	public Node(long rank) {
 		this.rank = rank;
 	}
 
@@ -27,7 +27,7 @@ public class Node implements Comparable<Node> {
 	/**
 	 * @return true if any changes were made. 
 	 */
-	boolean linkTo(TransactionHandler<Unit> action, Node target, Target[] outTarget) {
+	public boolean linkTo(TransactionHandler<Unit> action, Node target, Target[] outTarget) {
 		boolean changed = target.ensureBiggerThan(rank, new HashSet<Node>());
 		Target t = new Target(action, target);
 		listeners.add(t);

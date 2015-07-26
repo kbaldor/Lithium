@@ -1,3 +1,7 @@
+import lithium.Cell;
+import lithium.Listener;
+import lithium.StreamSink;
+
 public class MemoryTest5
 {
     public static void main(String[] args)

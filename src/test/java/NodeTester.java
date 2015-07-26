@@ -1,4 +1,5 @@
 import junit.framework.TestCase;
+import lithium.Node;
 
 public class NodeTester extends TestCase {
 	public void testNode() {
