@@ -1,17 +1,2 @@
-Sodium - Functional Reactive Programming in C#, C++, Java, Haskell and Scala
-(other languages to be added)
+Lithium - A java-only subset of Sodium that supports metric temporal logic
 
-This is based on Flapjax, Yampa, scala.React and a number of other Functional
-Reactive Programming efforts, as well as a lot of personal experience. Enjoy.
-
-Status:
-  Haskell - complete
-  Java - complete
-  C++ - complete
-  C# - complete
-  Embedded-C - just an experiment
-  Rust - got nowhere with it yet
-  Scala - complete
- 
-Drop by our blog at 
-  http://reactiveprogramming.org/
