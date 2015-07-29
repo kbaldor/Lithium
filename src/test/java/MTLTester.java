@@ -105,7 +105,7 @@ public class MTLTester extends TestCase {
                 q.send(Transition.TF());
             }
         });
-        p.send(Transition.TF());
+        p.send(Transition.FT());
         p.send(Transition.TF());
         q.send(Transition.TF());
         q.send(Transition.FT());
@@ -115,7 +115,7 @@ public class MTLTester extends TestCase {
         assertEquals(Arrays.asList(
                 Transition.Value.TT, // initial value
                 Transition.Value.TT,
-                Transition.Value.TF,
+                Transition.Value.FF,
                 Transition.Value.FF,
                 Transition.Value.TF,
                 Transition.Value.FT,
