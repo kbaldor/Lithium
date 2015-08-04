@@ -48,10 +48,9 @@ public class Transition {
         this.transaction = null;
     }
 
-    public void setTransactionIfNull(Transaction transaction){
-        if(this.transaction==null){
-            this.transaction = transaction;
-        }
+    public Transition(Integer value){
+        this.value = Value.values()[value];
+        this.transaction = null;
     }
 
     private Value finalValue(Value value){
@@ -60,11 +59,13 @@ public class Transition {
     }
 
     public Value value(){
-        if(this.transaction==null) {
-            this.transaction = Transaction.getCurrentTransaction();
-        }
-        if(!this.transaction.equals(Transaction.getCurrentTransaction())){
-            return finalValue(this.value);
+        if(Transaction.getCurrentTransaction()!=null) {
+            if(this.transaction == null ) {
+                this.transaction = Transaction.getCurrentTransaction();
+            }
+            if(this.transaction != Transaction.getCurrentTransaction()){
+                return finalValue(this.value);
+            }
         }
         return this.value;
     }
