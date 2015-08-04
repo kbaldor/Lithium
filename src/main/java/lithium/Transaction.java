@@ -44,8 +44,13 @@ public final class Transaction {
 	private final List<Runnable> lastQ = new ArrayList<Runnable>();
 	private List<Runnable> postQ;
 
+	public long transactionTime;
+
 	Transaction() {
+		transactionTime = System.currentTimeMillis();
 	}
+
+	public long getTransactionTime() {return transactionTime;}
 
 	private static Transaction currentTransaction;
     static int inCallback;
