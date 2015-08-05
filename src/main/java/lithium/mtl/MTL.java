@@ -88,7 +88,7 @@ public class MTL {
         });
     }
 
-    public static Cell<Transition> previously_cc(Cell<Transition> p,final long delay_ns){
+    public static Cell<Transition> previously_cc(Cell<Transition> p,final long delay_ms){
         return Transaction.run(() -> {
             StreamSink<Transition> timeout = new StreamSink<>();
             CellLoop<Optional<TimerQueue.TimerEntry>> handler = new CellLoop<>();
@@ -101,7 +101,7 @@ public class MTL {
             Stream<Optional<TimerQueue.TimerEntry>> ups = intValue.filter(v->(v&1)==1).map(v->new Optional<>());
             Stream<Optional<TimerQueue.TimerEntry>> downs =
                     intValue.filter(v->(v&1)==0).map(v->(2&v)).
-                            map(d -> new Optional<>(TimerQueue.addFutureEvent(delay_ns,
+                            map(d -> new Optional<>(TimerQueue.addFutureEvent(delay_ms,
                                     (t) -> timeout.send(new Transition(d)))));
 
             handler.loop(ups.merge(downs).hold(new Optional<>()));
