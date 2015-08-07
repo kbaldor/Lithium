@@ -1,5 +1,6 @@
 import junit.framework.TestCase;
 import lithium.*;
+import lithium.mtl.Backpressure;
 import lithium.mtl.Transition;
 
 import java.util.ArrayList;
@@ -142,6 +143,30 @@ public class MTLTester extends TestCase {
         l.unlisten();
         assertEquals(Arrays.asList(Transition.Value.FF, Transition.Value.TT, Transition.Value.TF), out);
     }
+
+    public void testDebounce()
+    {
+        StreamSink<Integer> input = new StreamSink<>();
+
+        Stream<Integer> throttled = Backpressure.debounce(input, 500);
+        ArrayList<Integer> out = new ArrayList<>();
+        Listener l = throttled.listen(x -> out.add(x));
+        try {
+            input.send(1);
+            Thread.sleep(1000);
+            input.send(2);
+            Thread.sleep(100);
+            input.send(3);
+            Thread.sleep(100);
+            input.send(4);
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        l.unlisten();
+        assertEquals(Arrays.asList(1,4), out);
+    }
+
 
 }
 

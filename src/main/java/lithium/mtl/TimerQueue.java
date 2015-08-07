@@ -54,7 +54,7 @@ public class TimerQueue {
                     @Override
                     public void run(Transaction transaction) {
                         transaction.transactionTime = timerExpirationTime;
-                        System.out.println("Running timer entry.");
+//                        System.out.println("Running timer entry.");
                         for (TimerEntry entry : timerEntries) {
                             entry.action.run(transaction);
                         }
