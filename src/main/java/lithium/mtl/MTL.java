@@ -88,6 +88,79 @@ public class MTL {
         });
     }
 
+    public static Cell<Transition> once_oo(Cell<Transition> p, final long delay_ms){
+        return Transaction.run(() -> {
+            StreamSink<Transition> timeout = new StreamSink<>();
+            CellLoop<Optional<TimerQueue.TimerEntry>> handler = new CellLoop<>();
+            CellLoop<Transition> o = new CellLoop<>();
+
+            p.updates().snapshot(handler,(t,h)->h).filter(Optional::isPresent).listen(h->TimerQueue.cancel(h.get()));
+
+            Stream<Integer> intValue = p.updates().map(Transition::intValue);
+
+            Stream<Optional<TimerQueue.TimerEntry>> ups = intValue.filter(v->(v&1)==1).map(v->new Optional<>());
+            Stream<Optional<TimerQueue.TimerEntry>> downs =
+                    intValue.filter(v->(v&1)==0).map(v->0).
+                            map(d -> new Optional<>(TimerQueue.addFutureEvent(delay_ms,
+                                    (t) -> timeout.send(new Transition(d)))));
+
+            handler.loop(ups.merge(downs).hold(new Optional<>()));
+
+
+            o.loop(filter_redundant(p.updates().filter(v -> v.intValue() != 0).snapshot(o, (v, prv) -> new Transition(prv.intValue() | (v.intValue() & 0) | 1)).merge(timeout).hold(p.sample())));
+            return o;
+        });
+    }
+
+    public static Cell<Transition> once_oc(Cell<Transition> p, final long delay_ms){
+        return Transaction.run(() -> {
+            StreamSink<Transition> timeout = new StreamSink<>();
+            CellLoop<Optional<TimerQueue.TimerEntry>> handler = new CellLoop<>();
+            CellLoop<Transition> o = new CellLoop<>();
+
+            p.updates().snapshot(handler,(t,h)->h).filter(Optional::isPresent).listen(h->TimerQueue.cancel(h.get()));
+
+            Stream<Integer> intValue = p.updates().map(Transition::intValue);
+
+            Stream<Optional<TimerQueue.TimerEntry>> ups = intValue.filter(v->(v&1)==1).map(v->new Optional<>());
+            Stream<Optional<TimerQueue.TimerEntry>> downs =
+                    intValue.filter(v->(v&1)==0).map(v->(2&v)).
+                            map(d -> new Optional<>(TimerQueue.addFutureEvent(delay_ms,
+                                    (t) -> timeout.send(new Transition(d)))));
+
+            handler.loop(ups.merge(downs).hold(new Optional<>()));
+
+
+            o.loop(filter_redundant(p.updates().filter(v -> v.intValue() != 0).snapshot(o, (v, prv) -> new Transition(prv.intValue() | (v.intValue() & 0) | 1)).merge(timeout).hold(p.sample())));
+            return o;
+        });
+    }
+
+
+    public static Cell<Transition> once_co(Cell<Transition> p, final long delay_ms){
+        return Transaction.run(() -> {
+            StreamSink<Transition> timeout = new StreamSink<>();
+            CellLoop<Optional<TimerQueue.TimerEntry>> handler = new CellLoop<>();
+            CellLoop<Transition> o = new CellLoop<>();
+
+            p.updates().snapshot(handler,(t,h)->h).filter(Optional::isPresent).listen(h->TimerQueue.cancel(h.get()));
+
+            Stream<Integer> intValue = p.updates().map(Transition::intValue);
+
+            Stream<Optional<TimerQueue.TimerEntry>> ups = intValue.filter(v->(v&1)==1).map(v->new Optional<>());
+            Stream<Optional<TimerQueue.TimerEntry>> downs =
+                    intValue.filter(v->(v&1)==0).map(v -> 0).
+                            map(d -> new Optional<>(TimerQueue.addFutureEvent(delay_ms,
+                                    (t) -> timeout.send(new Transition(d)))));
+
+            handler.loop(ups.merge(downs).hold(new Optional<>()));
+
+
+            o.loop(filter_redundant(p.updates().filter(v -> v.intValue() != 0).snapshot(o, (v, prv) -> new Transition(prv.intValue() | (v.intValue() & 2) | 1)).merge(timeout).hold(p.sample())));
+            return o;
+        });
+    }
+
     public static Cell<Transition> once_cc(Cell<Transition> p, final long delay_ms){
         return Transaction.run(() -> {
             StreamSink<Transition> timeout = new StreamSink<>();

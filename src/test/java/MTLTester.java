@@ -102,7 +102,7 @@ public class MTLTester extends TestCase {
                     Transition.Value.FT), out);
         }
 
-    public void testOnce()
+    public void testOnce_cc()
     {
         CellSink<Transition> p = new CellSink<>(Transition.FF());
 
@@ -123,7 +123,7 @@ public class MTLTester extends TestCase {
         assertEquals(Arrays.asList(Transition.Value.FF, Transition.Value.TT), out);
     }
 
-    public void testOnce2()
+    public void testOnce_cc2()
     {
         CellSink<Transition> p = new CellSink<>(Transition.FF());
 
@@ -143,6 +143,71 @@ public class MTLTester extends TestCase {
         l.unlisten();
         assertEquals(Arrays.asList(Transition.Value.FF, Transition.Value.TT, Transition.Value.TF), out);
     }
+
+    public void testOnce_oc2()
+    {
+        CellSink<Transition> p = new CellSink<>(Transition.FF());
+
+        Cell<Transition> o = lithium.mtl.MTL.once_oc(p, 100);
+        ArrayList<Transition.Value> out = new ArrayList<>();
+        Listener l = o.listen(x -> out.add(x.value()));
+        try {
+            p.send(Transition.TF());
+            Thread.sleep(50);
+            p.send(Transition.TF());
+            Thread.sleep(50);
+            p.send(Transition.TF());
+            Thread.sleep(150);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        l.unlisten();
+        assertEquals(Arrays.asList(Transition.Value.FF, Transition.Value.FT, Transition.Value.TF), out);
+    }
+
+
+    public void testOnce_co2()
+    {
+        CellSink<Transition> p = new CellSink<>(Transition.FF());
+
+        Cell<Transition> o = lithium.mtl.MTL.once_co(p, 100);
+        ArrayList<Transition.Value> out = new ArrayList<>();
+        Listener l = o.listen(x -> out.add(x.value()));
+        try {
+            p.send(Transition.TF());
+            Thread.sleep(50);
+            p.send(Transition.TF());
+            Thread.sleep(50);
+            p.send(Transition.TF());
+            Thread.sleep(150);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        l.unlisten();
+        assertEquals(Arrays.asList(Transition.Value.FF, Transition.Value.TT, Transition.Value.FF), out);
+    }
+
+    public void testOnce_oo2()
+    {
+        CellSink<Transition> p = new CellSink<>(Transition.FF());
+
+        Cell<Transition> o = lithium.mtl.MTL.once_oo(p, 100);
+        ArrayList<Transition.Value> out = new ArrayList<>();
+        Listener l = o.listen(x -> out.add(x.value()));
+        try {
+            p.send(Transition.TF());
+            Thread.sleep(50);
+            p.send(Transition.TF());
+            Thread.sleep(50);
+            p.send(Transition.TF());
+            Thread.sleep(150);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        l.unlisten();
+        assertEquals(Arrays.asList(Transition.Value.FF, Transition.Value.FT, Transition.Value.FF), out);
+    }
+
 
     public void testDebounce()
     {
