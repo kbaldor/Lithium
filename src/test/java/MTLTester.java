@@ -102,20 +102,20 @@ public class MTLTester extends TestCase {
                     Transition.Value.FT), out);
         }
 
-    public void testPreviously()
+    public void testOnce()
     {
         CellSink<Transition> p = new CellSink<>(Transition.FF());
 
-        Cell<Transition> pr = lithium.mtl.MTL.previously_cc(p,1000);
+        Cell<Transition> o = lithium.mtl.MTL.once_cc(p, 100);
         ArrayList<Transition.Value> out = new ArrayList<>();
-        Listener l = pr.listen(x -> out.add(x.value()));
+        Listener l = o.listen(x -> out.add(x.value()));
         try {
             p.send(Transition.TF());
-            Thread.sleep(500);
+            Thread.sleep(50);
             p.send(Transition.TF());
-            Thread.sleep(500);
+            Thread.sleep(50);
             p.send(Transition.FT());
-            Thread.sleep(1500);
+            Thread.sleep(150);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -123,20 +123,20 @@ public class MTLTester extends TestCase {
         assertEquals(Arrays.asList(Transition.Value.FF, Transition.Value.TT), out);
     }
 
-    public void testPreviously2()
+    public void testOnce2()
     {
         CellSink<Transition> p = new CellSink<>(Transition.FF());
 
-        Cell<Transition> pr = lithium.mtl.MTL.previously_cc(p,1000);
+        Cell<Transition> o = lithium.mtl.MTL.once_cc(p, 100);
         ArrayList<Transition.Value> out = new ArrayList<>();
-        Listener l = pr.listen(x -> out.add(x.value()));
+        Listener l = o.listen(x -> out.add(x.value()));
         try {
             p.send(Transition.TF());
-            Thread.sleep(500);
+            Thread.sleep(50);
             p.send(Transition.TF());
-            Thread.sleep(500);
+            Thread.sleep(50);
             p.send(Transition.TF());
-            Thread.sleep(1500);
+            Thread.sleep(150);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -148,18 +148,18 @@ public class MTLTester extends TestCase {
     {
         StreamSink<Integer> input = new StreamSink<>();
 
-        Stream<Integer> throttled = Backpressure.debounce(input, 500);
+        Stream<Integer> debounced = Backpressure.debounce(input, 50);
         ArrayList<Integer> out = new ArrayList<>();
-        Listener l = throttled.listen(x -> out.add(x));
+        Listener l = debounced.listen(x -> out.add(x));
         try {
             input.send(1);
-            Thread.sleep(1000);
+            Thread.sleep(100);
             input.send(2);
-            Thread.sleep(100);
+            Thread.sleep(10);
             input.send(3);
-            Thread.sleep(100);
+            Thread.sleep(10);
             input.send(4);
-            Thread.sleep(1000);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -167,6 +167,71 @@ public class MTLTester extends TestCase {
         assertEquals(Arrays.asList(1,4), out);
     }
 
+    public void testThrottleFirst()
+    {
+        StreamSink<Integer> input = new StreamSink<>();
+
+        Stream<Integer> throttled = Backpressure.throttleFirst(input, 50);
+        ArrayList<Integer> out = new ArrayList<>();
+        Listener l = throttled.listen(x -> out.add(x));
+        try {
+            input.send(1);
+            Thread.sleep(100); // should emit 1 during this sleep
+            input.send(2);
+            Thread.sleep(15);
+            input.send(3);
+            Thread.sleep(10);
+            input.send(4);
+            Thread.sleep(10);
+            input.send(5);
+            Thread.sleep(10);
+            input.send(6);
+            Thread.sleep(10); // should emit 2 during this sleep
+            input.send(7);
+            Thread.sleep(10);
+            input.send(8);
+            Thread.sleep(10);
+            input.send(9);
+            Thread.sleep(100); // should emit 7 during this sleep
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        l.unlisten();
+        assertEquals(Arrays.asList(1,2,7), out);
+    }
+
+    public void testThrottleLast()
+    {
+        StreamSink<Integer> input = new StreamSink<>();
+
+        Stream<Integer> throttled = Backpressure.throttleLast(input, 50);
+        ArrayList<Integer> out = new ArrayList<>();
+        Listener l = throttled.listen(x -> out.add(x));
+        try {
+            input.send(1);
+            Thread.sleep(100); // should emit 1 during this sleep
+            input.send(2);
+            Thread.sleep(15);
+            input.send(3);
+            Thread.sleep(10);
+            input.send(4);
+            Thread.sleep(10);
+            input.send(5);
+            Thread.sleep(10);
+            input.send(6);
+            Thread.sleep(10); // shoule emit 6 during this sleep
+            input.send(7);
+            Thread.sleep(10);
+            input.send(8);
+            Thread.sleep(10);
+            input.send(9);
+            Thread.sleep(100); // should emit 7 during this sleep
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        l.unlisten();
+        assertEquals(Arrays.asList(1,6,9), out);
+    }
 
 }
 

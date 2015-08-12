@@ -88,11 +88,11 @@ public class MTL {
         });
     }
 
-    public static Cell<Transition> previously_cc(Cell<Transition> p,final long delay_ms){
+    public static Cell<Transition> once_cc(Cell<Transition> p, final long delay_ms){
         return Transaction.run(() -> {
             StreamSink<Transition> timeout = new StreamSink<>();
             CellLoop<Optional<TimerQueue.TimerEntry>> handler = new CellLoop<>();
-            CellLoop<Transition> pr = new CellLoop<>();
+            CellLoop<Transition> o = new CellLoop<>();
 
             p.updates().snapshot(handler,(t,h)->h).filter(Optional::isPresent).listen(h->TimerQueue.cancel(h.get()));
 
@@ -107,8 +107,8 @@ public class MTL {
             handler.loop(ups.merge(downs).hold(new Optional<>()));
 
 
-            pr.loop(filter_redundant(p.updates().filter(v -> v.intValue() != 0).snapshot(pr, (v, prv) -> new Transition(prv.intValue() | (v.intValue() & 2) | 1)).merge(timeout).hold(p.sample())));
-            return pr;
+            o.loop(filter_redundant(p.updates().filter(v -> v.intValue() != 0).snapshot(o, (v, prv) -> new Transition(prv.intValue() | (v.intValue() & 2) | 1)).merge(timeout).hold(p.sample())));
+            return o;
         });
     }
 
