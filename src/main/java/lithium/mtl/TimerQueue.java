@@ -79,14 +79,10 @@ public class TimerQueue {
                             Transaction.run((t) -> flushTimerQ());
                             long sleepTime_ms = timerQ.isEmpty()?1000:(timerQ.peek().expirationTime_ms - currentTime_ms);
                             try {
-                                if (timerQ.isEmpty()) {
-                                    Thread.sleep(sleepTime_ms);
-                                } else {
-                                    Thread.sleep(timerQ.peek().expirationTime_ms - System.currentTimeMillis());
-                                }
+                                Thread.sleep(sleepTime_ms);
                             } catch (InterruptedException e) {
 //                              This likely means that a new event has been added. Now we'll just look
-//                              for an event and
+//                              for an event and sleep
                             }
                         }
                     }
